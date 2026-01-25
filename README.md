@@ -1,16 +1,62 @@
-# React + Vite
+# ReactFlix
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ReactFlix is a self-hosted video streaming web app inspired by Netflix. Browse and watch your own Movies + TV Series on a local server (offline/LAN friendly).
 
-Currently, two official plugins are available:
+> ⚠️ Status: early-stage / WIP. Desktop-first UI (no phone support yet). The code works, but it’s not pretty and will be refactored over time.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Features
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+- Movies + TV Series browsing
+- Search by title/description
+- Genre filtering + pagination
+- Video player with “Up Next”
+- Subtitles support (`.vtt`, English + Hebrew)
+- Admin login + uploads (Movie upload + Series upload / add episodes)
+- Offline / LAN friendly (no external APIs)
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Project Structure (How it works)
+
+### Backend (Flask) — `movie_api.py`
+- Scans folders on disk and reads metadata from `descriptions.json`
+- Endpoints:
+  - `GET /series` → list available libraries (Movies + series folders)
+  - `GET /movies?series=Movies` → list movies in Movies
+  - `GET /series_data?series=<name>` → `{ movies, genres }` for a series folder
+  - `GET /api/genres?series=<name>` → `{ genres: [...] }`
+  - `POST /api/admin/login` → returns an admin token
+  - `POST /add_movie?series=Movies` (admin) → uploads movie + poster + updates `descriptions.json`
+  - `POST /add_series` (admin) → creates series OR adds episodes; saves episodes/posters; updates `descriptions.json`
+  - `GET /api/updates.txt` → serves the updates file
+  - `GET /<path:filename>` → serves media files directly from the project directory
+
+### Frontend (React)
+- `App.jsx` is the main UI:
+  - Loads **series list** (drawer sidebar)
+  - Loads **movies** / **series_data** depending on selected library
+  - Builds the **genre bar**
+  - Handles **search**, **pagination**, **VideoModal**
+  - Handles **Admin login** and **Upload modal**
+- Media URLs: the backend returns paths like `Movies/File.mp4`, and the UI maps them to `/<path>`.
+
+---
+
+## First Setup
+
+### Requirements
+- Python 3.10+ recommended
+- Node.js 18+ recommended
+
+### Backend (Flask)
+1. Create a venv and install deps:
+   ```bash
+   python -m venv .venv
+   # Windows
+   .\.venv\Scripts\activate
+   # Linux/Mac
+   source .venv/bin/activate
+
+   pip install flask flask-cors cachetools werkzeug
