@@ -152,7 +152,7 @@ def serve_index():
 
 @cached(cache)
 def get_series_list():
-    ignore = {"static", "packages", ".venv", "node_modules", "public", "src"}
+    ignore = {"static", "packages", ".venv", "node_modules", "public", "src", ".git"}
     folders = [
         f
         for f in os.listdir(BASE_DIRECTORY)
